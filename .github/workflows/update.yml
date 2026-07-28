@@ -1,0 +1,45 @@
+name: Update Cask
+
+on:
+  schedule:
+    - cron: '17 */6 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v6
+      - name: Download latest generated cask
+        run: |
+          mkdir -p Casks
+          if ! curl -fsSL \
+            https://github.com/swap3d/swap3d-cli/releases/latest/download/swap3d.rb \
+            -o Casks/swap3d.rb; then
+            echo "No public Swap3D CLI release cask is available yet."
+            rm -f Casks/swap3d.rb
+            exit 0
+          fi
+      - name: Validate cask
+        if: hashFiles('Casks/swap3d.rb') != ''
+        run: |
+          brew tap-new swap3d/validation
+          mkdir -p "$(brew --repository swap3d/validation)/Casks"
+          cp Casks/swap3d.rb "$(brew --repository swap3d/validation)/Casks/swap3d.rb"
+          brew style --cask swap3d/validation/swap3d
+          brew audit --cask swap3d/validation/swap3d
+      - name: Commit cask update
+        if: hashFiles('Casks/swap3d.rb') != ''
+        run: |
+          if git diff --quiet -- Casks/swap3d.rb; then
+            echo "Cask is already current."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add Casks/swap3d.rb
+          git commit -m "chore: update Swap3D CLI cask"
+          git push
