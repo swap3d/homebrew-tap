@@ -1,17 +1,17 @@
 class Swap3d < Formula
   desc "Command-line client for the Swap3D developer API"
   homepage "https://swap3d.studio/"
-  version "0.2.2"
+  version "0.2.3"
   license "Apache-2.0"
   depends_on :macos
 
   on_macos do
     if Hardware::CPU.arm?
       url "https://github.com/swap3d/swap3d-cli/releases/download/v#{version}/swap3d-darwin-arm64.tar.gz"
-      sha256 "8698cbc20673d5d4222364dff6a11826a50ddbedaeddd0d17cb6015f76372fae"
+      sha256 "d575d22529ddbd5478516c2d76d80122880c45e03da2ebd241d04b775f03d16f"
     else
       url "https://github.com/swap3d/swap3d-cli/releases/download/v#{version}/swap3d-darwin-x64.tar.gz"
-      sha256 "34eb54bc4c14e5963d9ed38c411f01b878ef404a1f933b8988dcde6591e34267"
+      sha256 "943eabf89a7d59c46c03f309103d89a5bb6b8211c139bbde183159831c654582"
     end
   end
 
