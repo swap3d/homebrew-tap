@@ -14,6 +14,7 @@ jobs:
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
       - name: Download latest generated formula
+        id: formula
         run: |
           mkdir -p Formula
           if ! curl -fsSL \
@@ -23,8 +24,14 @@ jobs:
             rm -f Formula/swap3d.rb
             exit 0
           fi
+          if [ -z "$(git status --porcelain -- Formula/swap3d.rb)" ]; then
+            echo "Formula is already current; skipping validation and publication."
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
       - name: Validate formula
-        if: hashFiles('Formula/swap3d.rb') != ''
+        if: steps.formula.outputs.changed == 'true'
         run: |
           brew tap-new swap3d/validation
           mkdir -p "$(brew --repository swap3d/validation)/Formula"
@@ -32,7 +39,7 @@ jobs:
           brew style --formula swap3d/validation/swap3d
           brew audit --formula swap3d/validation/swap3d
       - name: Commit formula update
-        if: hashFiles('Formula/swap3d.rb') != ''
+        if: steps.formula.outputs.changed == 'true'
         run: |
           if [ -z "$(git status --porcelain -- Formula/swap3d.rb)" ]; then
             echo "Formula is already current."
